@@ -6,21 +6,28 @@
   <title>Điểm Danh 11A5 - THPT Bình Thạnh Đông</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
-    .card { background: #ffffff; width: 100%; max-width: 400px; padding: 24px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; }
-    .tag { display: inline-block; background-color: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
-    h2 { color: #1e3a8a; font-size: 20px; margin-bottom: 4px; }
-    p.sub { color: #64748b; font-size: 13px; margin-bottom: 16px; }
-    .field { text-align: left; margin-bottom: 14px; }
-    label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
-    select, input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; outline: none; background: #fff; }
+    body { background-color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 14px; }
+    .card { background: #ffffff; width: 100%; max-width: 410px; padding: 22px; border-radius: 16px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); text-align: center; }
+    .tag { display: inline-block; background-color: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    h2 { color: #1e3a8a; font-size: 19px; margin-bottom: 2px; }
+    p.sub { color: #64748b; font-size: 13px; margin-bottom: 12px; }
+    .field { text-align: left; margin-bottom: 10px; }
+    label { display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+    select, input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; }
     select:focus, input:focus { border-color: #2563eb; }
-    button { width: 100%; padding: 14px; background-color: #2563eb; color: #ffffff; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; margin-top: 6px; }
+    
+    /* Vùng Camera Selfie Trực Tiếp */
+    .cam-wrapper { margin: 10px 0; border: 2px dashed #93c5fd; border-radius: 10px; padding: 6px; background: #f8fafc; }
+    video { width: 100%; max-height: 180px; border-radius: 8px; object-fit: cover; background: #1e293b; transform: scaleX(-1); }
+    canvas { display: none; }
+
+    button { width: 100%; padding: 13px; background-color: #2563eb; color: #ffffff; font-size: 15px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; margin-top: 4px; }
     button:disabled { background-color: #94a3b8; cursor: not-allowed; }
-    .alert { padding: 12px; border-radius: 8px; font-size: 14px; margin-top: 14px; display: none; line-height: 1.4; text-align: left; }
+    .alert { padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: none; line-height: 1.4; text-align: left; }
     .success { background-color: #dcfce7; color: #166534; }
     .error { background-color: #fee2e2; color: #991b1b; }
-    .credit { margin-top: 18px; padding-top: 12px; border-top: 1px dashed #e2e8f0; font-size: 12px; color: #64748b; }
+    .dev-badge { font-family: monospace; font-size: 10.5px; color: #94a3b8; margin-top: 8px; word-break: break-all; }
+    .credit { margin-top: 14px; padding-top: 10px; border-top: 1px dashed #e2e8f0; font-size: 12px; color: #64748b; }
     .credit strong { color: #1e3a8a; }
   </style>
 </head>
@@ -29,13 +36,13 @@
 <div class="card">
   <span class="tag">THPT BÌNH THẠNH ĐÔNG</span>
   <h2>ĐIỂM DANH LỚP 11A5</h2>
-  <p class="sub">Hệ thống quét mã xác thực vị trí</p>
+  <p class="sub">Chụp ảnh khuôn mặt & khóa máy cố định</p>
 
   <form id="attForm">
     <div class="field">
       <label for="student">1. Họ và tên học sinh:</label>
       <select id="student" required>
-        <option value="">-- Chọn tên trong danh sách --</option>
+        <option value="">-- Danh sách 35 học sinh --</option>
         <option value="2503669204">01 - Bùi Quốc Anh</option>
         <option value="2200306855">02 - Nguyễn Thị Kim Anh</option>
         <option value="2200306818">03 - Lê Gia Bảo</option>
@@ -75,14 +82,22 @@
     </div>
 
     <div class="field">
-      <label for="passcode">2. Mã xác thực (4 số cuối Mã HS):</label>
-      <input type="password" id="passcode" maxlength="4" placeholder="Nhập 4 số cuối" required inputmode="numeric">
+      <label for="passcode">2. Mã xác thực (4 số cuối CCCD):</label>
+      <input type="password" id="passcode" maxlength="4" placeholder="Nhập 4 số cuối Căn cước" required inputmode="numeric">
     </div>
 
-    <button type="button" id="btnSubmit" onclick="guiDiemDanh()">Xác Nhận Có Mặt</button>
+    <!-- Khung Camera Selfie Chân Dung -->
+    <div class="cam-wrapper">
+      <label style="text-align: center; color: #1e3a8a; font-size: 11.5px; margin-bottom: 4px;">Camera chân dung trực tiếp</label>
+      <video id="webcam" autoplay playsinline></video>
+      <canvas id="photo" width="320" height="240"></canvas>
+    </div>
+
+    <button type="button" id="btnSubmit" onclick="guiDiemDanh()">Chụp Ảnh & Điểm Danh</button>
   </form>
 
   <div id="msg" class="alert"></div>
+  <div class="dev-badge" id="devInfo"></div>
 
   <div class="credit">
     Thiết kế & Bản quyền: <strong>NGUYỄN THẮM</strong>
@@ -90,11 +105,34 @@
 </div>
 
 <script>
-  // DÁN LINK GOOGLE APPS SCRIPT CỦA BẠN VÀO GIỮA DẤU NGOẶC KÉP NÀY:
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxskvJCmH_rXmUKYdju0Xa8CxDyxJ_SNjou-K925QHgd7ncaulC5J_Lvan1SZlvVxmC/exec";
+  // Dán link Apps Script của bạn vào đây:
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybGCGqu7NsnNoCdb5gorLTWTIdBvi01eV6B8SJaVIXD1HulujNjHdP-xcFBpOQ4ubh/exec";
 
   const TRUONG_LAT = 10.5372;
   const TRUONG_LNG = 105.1524;
+  const video = document.getElementById("webcam");
+  const canvas = document.getElementById("photo");
+
+  // 1. TẠO HOẶC LẤY MÃ ĐỊNH DANH MÁY (DEVICE TOKEN)
+  function getDeviceId() {
+    let id = localStorage.getItem("btd_device_token");
+    if (!id) {
+      id = "DEV-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-" + Date.now().toString(36).toUpperCase();
+      localStorage.setItem("btd_device_token", id);
+    }
+    return id;
+  }
+  const myDeviceId = getDeviceId();
+
+  // 2. TỰ ĐỘNG BẬT CAMERA TRƯỚC KHI MỞ TRANG
+  window.onload = function() {
+    document.getElementById("devInfo").innerText = "Mã máy: " + myDeviceId;
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => { console.log("Không thể mở camera trước:", err); });
+    }
+  };
 
   function tinhKhoangCach(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
@@ -116,33 +154,30 @@
     const select = document.getElementById("student");
     const maHS = select.value;
     const tenHS = select.options[select.selectedIndex].text;
-    const pin = document.getElementById("passcode").value.trim();
+    const pinCCCD = document.getElementById("passcode").value.trim();
     const btn = document.getElementById("btnSubmit");
 
-    if (!maHS) {
-      baoLoi("Vui lòng chọn tên học sinh!", false);
-      return;
-    }
-
-    if (pin !== maHS.slice(-4)) {
-      baoLoi("Mã xác thực không đúng! Vui lòng nhập đúng 4 số cuối Mã HS.", false);
-      return;
-    }
-
-    const gioHienTai = new Date().getHours();
-    const caHienTai = (gioHienTai < 12) ? "sang" : "chieu";
-    const khoaMay = new Date().toISOString().slice(0, 10) + "_" + caHienTai;
-
-    if (localStorage.getItem("da_diem_danh_11a5") === khoaMay) {
-      baoLoi("Thiết bị này đã hoàn thành điểm danh cho buổi học này!", false);
+    if (!maHS) { baoLoi("Vui lòng chọn họ tên học sinh!", false); return; }
+    if (pinCCCD.length !== 4) {
+      baoLoi("Vui lòng nhập đúng đủ 4 số cuối Căn cước công dân (CCCD)!", false);
       return;
     }
 
     btn.disabled = true;
-    btn.innerText = "Đang kiểm tra vị trí...";
+    btn.innerText = "Đang chụp ảnh & kiểm tra vị trí...";
+
+    // Chụp lại khung hình khuôn mặt tại thời điểm bấm
+    let base64Image = "";
+    try {
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, 320, 240);
+      base64Image = canvas.toDataURL("image/jpeg", 0.6); // Nén nhẹ để gửi nhanh
+    } catch (e) {
+      console.log("Lỗi chụp:", e);
+    }
 
     if (!navigator.geolocation) {
-      baoLoi("Điện thoại không hỗ trợ định vị vị trí.", false);
+      baoLoi("Thiết bị không hỗ trợ định vị GPS.", false);
       btn.disabled = false;
       return;
     }
@@ -150,31 +185,41 @@
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const khoangCach = tinhKhoangCach(pos.coords.latitude, pos.coords.longitude, TRUONG_LAT, TRUONG_LNG);
-        btn.innerText = "Đang lưu dữ liệu...";
+        btn.innerText = "Đang truyền dữ liệu...";
 
         fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             studentId: maHS,
             studentName: tenHS,
-            distance: khoangCach
+            passcode: pinCCCD,
+            deviceId: myDeviceId,
+            distance: khoangCach,
+            imageBase64: base64Image
           })
-        }).then(() => {
-          localStorage.setItem("da_diem_danh_11a5", khoaMay);
-          baoLoi(`Điểm danh thành công!<br><strong>${tenHS}</strong><br>Ghi nhận lúc: ${new Date().toLocaleTimeString('vi-VN')}`, true);
-          btn.innerText = "Đã hoàn thành";
-        }).catch(() => {
-          baoLoi("Lỗi mạng, vui lòng kiểm tra lại 4G/Wi-Fi!", false);
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.result === "success") {
+            baoLoi(`Điểm danh thành công!<br><strong>${tenHS}</strong><br>Đã lưu ảnh chân dung và khóa máy.<br>Giờ: ${new Date().toLocaleTimeString('vi-VN')}`, true);
+            btn.innerText = "Đã hoàn thành";
+          } else {
+            baoLoi("<strong>Lỗi:</strong> " + data.message, false);
+            btn.disabled = false;
+            btn.innerText = "Chụp Ảnh & Điểm Danh";
+          }
+        })
+        .catch(() => {
+          baoLoi("Lỗi mạng, vui lòng kiểm tra lại kết nối 4G/Wi-Fi!", false);
           btn.disabled = false;
-          btn.innerText = "Xác Nhận Có Mặt";
+          btn.innerText = "Chụp Ảnh & Điểm Danh";
         });
       },
       (err) => {
-        baoLoi("Vui lòng BẬT ĐỊNH VỊ (GPS) trên điện thoại và cho phép trình duyệt truy cập vị trí.", false);
+        baoLoi("Vui lòng BẬT ĐỊNH VỊ (GPS) và cho phép Camera để hoàn tất điểm danh.", false);
         btn.disabled = false;
-        btn.innerText = "Xác Nhận Có Mặt";
+        btn.innerText = "Chụp Ảnh & Điểm Danh";
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
