@@ -15,16 +15,22 @@
     label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 5px; }
     select, input[type="password"] { width: 100%; padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; }
     select:focus, input[type="password"]:focus { border-color: #2563eb; }
-    
-    /* Vùng Chụp & Xem Trước Ảnh Khuôn Mặt */
-    .photo-area { margin: 12px 0; border: 2px dashed #93c5fd; border-radius: 12px; padding: 12px; background: #f8fafc; text-align: center; }
-    .btn-camera { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px; background-color: #0284c7; color: #ffffff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-    #previewBox { display: none; margin-top: 10px; }
-    #previewImg { width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; border: 2px solid #22c55e; }
-    .photo-status { font-size: 12px; color: #16a34a; font-weight: 600; margin-top: 5px; }
 
-    button.btn-main { width: 100%; padding: 13px; background-color: #2563eb; color: #ffffff; font-size: 15px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; margin-top: 6px; }
-    button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    /* Khung Camera & Ảnh Chụp Trực Tiếp */
+    .cam-box { position: relative; width: 100%; height: 230px; border-radius: 12px; overflow: hidden; background: #0f172a; border: 2px solid #3b82f6; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; }
+    video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
+    #capturedPhoto { width: 100%; height: 100%; object-fit: cover; display: none; }
+    canvas { display: none; }
+
+    .cam-ctrl { display: flex; gap: 8px; margin-bottom: 12px; }
+    .btn-cam-action { flex: 1; padding: 10px; font-size: 13px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .btn-snap { background-color: #0284c7; color: #ffffff; }
+    .btn-retake { background-color: #64748b; color: #ffffff; display: none; }
+    .btn-open-cam { background-color: #f59e0b; color: #ffffff; display: none; }
+
+    .btn-submit { width: 100%; padding: 13px; background-color: #2563eb; color: #ffffff; font-size: 15px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; }
+    .btn-submit:disabled { background-color: #94a3b8; cursor: not-allowed; }
+
     .alert { padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: none; line-height: 1.4; text-align: left; }
     .success { background-color: #dcfce7; color: #166534; }
     .error { background-color: #fee2e2; color: #991b1b; }
@@ -89,21 +95,21 @@
     </div>
 
     <div class="field">
-      <label>3. Chụp ảnh chân dung xác thực:</label>
-      <div class="photo-area">
-        <!-- Nút kích hoạt mở trực tiếp camera máy -->
-        <input type="file" id="nativeCameraInput" accept="image/*" capture="user" style="display: none;" onchange="xuLyAnhChup(event)">
-        <button type="button" class="btn-camera" onclick="document.getElementById('nativeCameraInput').click()">
-          📷 Bấm vào đây để chụp ảnh khuôn mặt
-        </button>
-        <div id="previewBox">
-          <img id="previewImg" alt="Ảnh chân dung">
-          <div class="photo-status">✓ Đã chụp ảnh thành công!</div>
-        </div>
+      <label>3. Camera trước trực tiếp:</label>
+      <div class="cam-box">
+        <video id="webcam" autoplay playsinline muted></video>
+        <img id="capturedPhoto" alt="Ảnh chân dung đã chụp">
+        <canvas id="photoCanvas" width="400" height="300"></canvas>
+      </div>
+
+      <div class="cam-ctrl">
+        <button type="button" id="btnSnap" class="btn-cam-action btn-snap" onclick="chupAnhNgay()">📸 Chụp Ảnh Ngay</button>
+        <button type="button" id="btnRetake" class="btn-cam-action btn-retake" onclick="chupLai()">🔄 Chụp Lại</button>
+        <button type="button" id="btnOpenCam" class="btn-cam-action btn-open-cam" onclick="khoiDongCamera()">🔓 Bật Lại Camera</button>
       </div>
     </div>
 
-    <button type="button" class="btn-main" id="btnSubmit" onclick="guiDiemDanh()">Gửi Điểm Danh</button>
+    <button type="button" class="btn-submit" id="btnSubmit" onclick="guiDiemDanh()">Xác Nhận & Gửi Điểm Danh</button>
   </form>
 
   <div id="msg" class="alert"></div>
@@ -115,11 +121,19 @@
 </div>
 
 <script>
-  // DÁN LINK GOOGLE APPS SCRIPT CỦA BẠN VÀO ĐÂY:
+  // DÁN LINK APPS SCRIPT CỦA BẠN VÀO ĐÂY:
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwGa5hk42QU7Lqkv947zILiAUM-UjeDtiGa9bfbSG4IErWEAye5ejTC6gOny0x9tUbcA/exec";
 
   const TRUONG_LAT = 10.5372;
   const TRUONG_LNG = 105.1524;
+  const video = document.getElementById("webcam");
+  const capturedPhoto = document.getElementById("capturedPhoto");
+  const canvas = document.getElementById("photoCanvas");
+  const btnSnap = document.getElementById("btnSnap");
+  const btnRetake = document.getElementById("btnRetake");
+  const btnOpenCam = document.getElementById("btnOpenCam");
+
+  let streamGoc = null;
   let finalBase64Image = "";
 
   function getDeviceId() {
@@ -132,36 +146,80 @@
   }
   const myDeviceId = getDeviceId();
 
+  // KÍCH HOẠT CAMERA TRƯỚC VỚI RÀNG BUỘC CHUẨN ĐA THIẾT BỊ
+  async function khoiDongCamera() {
+    btnOpenCam.style.display = "none";
+    
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      baoLoi("Trình duyệt không hỗ trợ mở camera trực tiếp. Vui lòng mở bằng Chrome hoặc Safari!", false);
+      btnOpenCam.style.display = "block";
+      return;
+    }
+
+    try {
+      // Ưu tiên camera trước (user)
+      streamGoc = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false
+      });
+      video.srcObject = streamGoc;
+      await video.play();
+    } catch (e1) {
+      try {
+        // Fallback: nếu máy không phân biệt được "user", mở camera bất kỳ
+        streamGoc = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        video.srcObject = streamGoc;
+        await video.play();
+      } catch (e2) {
+        baoLoi("Vui lòng bấm 'Cho phép' khi trình duyệt hỏi quyền sử dụng Camera!", false);
+        btnOpenCam.style.display = "block";
+      }
+    }
+  }
+
+  // HÀM CHỤP KHUNG HÌNH TRỰC TIẾP TỪ VIDEO
+  function chupAnhNgay() {
+    if (!streamGoc || video.videoWidth === 0) {
+      baoLoi("Camera chưa sẵn sàng hoặc chưa hiển thị hình ảnh!", false);
+      khoiDongCamera();
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    canvas.width = 400;
+    canvas.height = 300;
+    
+    // Đảo ngược khung vẽ để ảnh chụp giống hệt gương soi
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    finalBase64Image = canvas.toDataURL("image/jpeg", 0.7);
+
+    // Hiển thị ảnh chụp tĩnh lên màn hình
+    capturedPhoto.src = finalBase64Image;
+    capturedPhoto.style.display = "block";
+    video.style.display = "none";
+
+    btnSnap.style.display = "none";
+    btnRetake.style.display = "block";
+    baoLoi("Đã chụp khuôn mặt! Hãy bấm 'Xác Nhận & Gửi Điểm Danh'.", true);
+  }
+
+  // HÀM CHỤP LẠI
+  function chupLai() {
+    finalBase64Image = "";
+    capturedPhoto.style.display = "none";
+    video.style.display = "block";
+    btnSnap.style.display = "block";
+    btnRetake.style.display = "none";
+    document.getElementById("msg").style.display = "none";
+  }
+
   window.onload = function() {
     document.getElementById("devInfo").innerText = "Mã máy: " + myDeviceId;
+    khoiDongCamera();
   };
-
-  // NÉN VÀ XỬ LÝ ẢNH CHỤP TRỰC TIẾP
-  function xuLyAnhChup(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 400;
-        const scale = MAX_WIDTH / img.width;
-        canvas.width = MAX_WIDTH;
-        canvas.height = img.height * scale;
-
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        finalBase64Image = canvas.toDataURL("image/jpeg", 0.7);
-        document.getElementById("previewImg").src = finalBase64Image;
-        document.getElementById("previewBox").style.display = "block";
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
 
   function tinhKhoangCach(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
@@ -192,7 +250,7 @@
       return;
     }
     if (!finalBase64Image) {
-      baoLoi("<strong>Chưa chụp ảnh!</strong> Vui lòng bấm nút màu xanh phía trên để chụp ảnh khuôn mặt trước khi gửi.", false);
+      baoLoi("<strong>Chưa có ảnh!</strong> Vui lòng bấm nút '📸 Chụp Ảnh Ngay' trước khi gửi điểm danh.", false);
       return;
     }
 
@@ -208,7 +266,7 @@
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const khoangCach = tinhKhoangCach(pos.coords.latitude, pos.coords.longitude, TRUONG_LAT, TRUONG_LNG);
-        btn.innerText = "Đang lưu ảnh và điểm danh...";
+        btn.innerText = "Đang truyền ảnh lên Google Drive...";
 
         fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
@@ -230,19 +288,19 @@
           } else {
             baoLoi("<strong>Lỗi:</strong> " + data.message, false);
             btn.disabled = false;
-            btn.innerText = "Gửi Điểm Danh";
+            btn.innerText = "Xác Nhận & Gửi Điểm Danh";
           }
         })
         .catch(() => {
           baoLoi("Lỗi kết nối mạng, vui lòng kiểm tra lại 4G/Wi-Fi!", false);
           btn.disabled = false;
-          btn.innerText = "Gửi Điểm Danh";
+          btn.innerText = "Xác Nhận & Gửi Điểm Danh";
         });
       },
       (err) => {
         baoLoi("Vui lòng BẬT ĐỊNH VỊ (GPS) trên điện thoại để hoàn tất điểm danh.", false);
         btn.disabled = false;
-        btn.innerText = "Gửi Điểm Danh";
+        btn.innerText = "Xác Nhận & Gửi Điểm Danh";
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
